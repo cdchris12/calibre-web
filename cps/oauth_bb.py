@@ -358,7 +358,13 @@ def google_login():
             return bind_oauth_or_register(oauthblueprints[1]['id'], account_info_json['id'], 'google.login', 'google')
         flash(_("Google Oauth error, please retry later."), category="error")
         log.error("Google Oauth error, please retry later")
-    except (InvalidGrantError, TokenExpiredError) as e:
+    except (TokenExpiredError) as e:
+        flash(_("Google Oauth error: {}").format(e), category="info")
+        response = make_response(redirect(url_for("google.login")))
+        response.set_cookie('session', '', expires=0, httponly=True, domain=host)
+        response.set_cookie('remember_token', '', expires=0, httponly=True,domain=host)
+        return response
+    except (InvalidGrantError) as e:
         flash(_("Google Oauth error: {}").format(e), category="error")
         log.error(e)
     return redirect(url_for('web.login'))
